@@ -1,0 +1,40 @@
+services:
+  app:
+    ports:
+      - "${APP_HOST_MACHINE_PORT}:8000"
+    volumes:
+      - type: bind
+        source: ./src
+        target: /my-work
+    build: ./docker/app
+  db:
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD:?.env DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - TZ=America/El_Salvador
+    ports:
+      - "${DB_HOST_MACHINE_PORT}:3306"
+    volumes:
+      - type: volume
+        source: db-compose-volume
+        target: /var/lib/mysql
+      - type: bind
+        source: ./docker/db/init
+        target: /docker-entrypoint-initdb.d
+    image: mysql:8.2.0
+  mail:
+    environment:
+      - TZ=America/El_Salvador
+      - MP_DATABASE=/data/mailpit.db
+    ports:
+      - "${MAIL_HOST_MACHINE_PORT}:8025"
+    volumes:
+      - type: volume
+        source: mail-compose-volume
+        target: /data
+    image: axllent/mailpit:v1.10.1
+volumes:
+  db-compose-volume:
+  mail-compose-volume:
